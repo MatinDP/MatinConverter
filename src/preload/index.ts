@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import type { AppSettings, ConvertOptions, ConvertProgress, ConvertRequest } from '../shared/types';
+import type { AppSettings, ConvertOptions, ConvertProgress, ConvertRequest, UpdateStatus } from '../shared/types';
 const api = {
   getSettings: () => ipcRenderer.invoke('settings:get') as Promise<AppSettings>,
   setSettings: (settings: AppSettings) => ipcRenderer.invoke('settings:set', settings) as Promise<boolean>,
@@ -12,6 +12,8 @@ const api = {
   openFolder: (folder: string) => ipcRenderer.invoke('output:open', folder),
   integrationStatus: () => ipcRenderer.invoke('integration:status'),
   setIntegration: (enabled: boolean) => ipcRenderer.invoke('integration:set', enabled),
+  checkAndInstallUpdate: () => ipcRenderer.invoke('updates:check-install') as Promise<UpdateStatus>,
+  onUpdateStatus: (cb: (status:UpdateStatus)=>void) => { const listener=(_:Electron.IpcRendererEvent,status:UpdateStatus)=>cb(status);ipcRenderer.on('updates:status',listener);return()=>ipcRenderer.removeListener('updates:status',listener); },
   onProgress: (cb: (progress: ConvertProgress) => void) => { const listener = (_: Electron.IpcRendererEvent, data: ConvertProgress) => cb(data); ipcRenderer.on('convert:progress', listener); return () => ipcRenderer.removeListener('convert:progress', listener); }
 };
 contextBridge.exposeInMainWorld('matin', api);

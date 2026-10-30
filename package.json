@@ -4,7 +4,7 @@
   "description": "Offline Windows image converter",
   "main": "dist/main/main/main.js",
   "author": "Matin Converter",
-  "license": "MIT",
+  "repository": { "type": "git", "url": "https://github.com/MatinDP/MatinConverter.git" },
   "scripts": {
     "dev": "concurrently -k \"vite --host 127.0.0.1\" \"wait-on tcp:5173 && electron .\"",
     "build": "tsc -p tsconfig.main.json && vite build",
@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "electron-store": "^8.2.0",
+    "electron-updater": "^6.8.12",
     "lucide-react": "^0.468.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -39,6 +40,7 @@
   "build": {
     "appId": "com.matin.converter",
     "productName": "Matin Converter",
+    "publish": [{ "provider": "github", "owner": "MatinDP", "repo": "MatinConverter" }],
     "directories": { "output": "release" },
     "files": ["dist/**/*", "package.json"],
     "asarUnpack": ["node_modules/sharp/**/*", "node_modules/@img/**/*"],

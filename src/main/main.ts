@@ -7,14 +7,20 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import Store from 'electron-store';
 import { z } from 'zod';
+import { autoUpdater } from 'electron-updater';
 import { defaultSettings } from '../shared/defaults';
-import type { AppSettings, ConvertOptions, ConvertProgress, ConvertRequest } from '../shared/types';
+import { updateRepository } from '../shared/update-config';
+import type { AppSettings, ConvertOptions, ConvertProgress, ConvertRequest, UpdateStatus } from '../shared/types';
 import { convertOne } from '../processing/engine';
 
 const store = new Store<{ settings: AppSettings }>({ name: 'settings', defaults: { settings: defaultSettings } });
 let mainWindow: BrowserWindow | null = null;
 let progressWindow: BrowserWindow | null = null;
 const cancelled = new Set<string>();
+let updateRunning = false;
+autoUpdater.autoDownload = false;
+autoUpdater.autoInstallOnAppQuit = false;
+autoUpdater.allowPrerelease = false;
 const execFileAsync = promisify(execFile);
 const quickMenuExtensions = ['.jpg','.jpeg','.jpe','.jfif','.png','.webp','.avif','.tif','.tiff','.gif','.svg','.svgz'];
 const optionsSchema = z.object({
@@ -49,6 +55,10 @@ function createProgress() {
   return progressWindow;
 }
 function sendProgress(data: ConvertProgress) { for (const win of [mainWindow, progressWindow]) if (win && !win.isDestroyed()) win.webContents.send('convert:progress', data); }
+function sendUpdateStatus(status:UpdateStatus){if(mainWindow&&!mainWindow.isDestroyed())mainWindow.webContents.send('updates:status',status);}
+autoUpdater.on('download-progress', info=>sendUpdateStatus({state:'downloading',percent:Math.round(info.percent),message:`در حال دریافت به‌روزرسانی… ${Math.round(info.percent)}٪`}));
+autoUpdater.on('update-downloaded', info=>{sendUpdateStatus({state:'installing',message:`نسخه ${info.version} دریافت شد؛ برنامه در حال راه‌اندازی مجدد است.`});setTimeout(()=>autoUpdater.quitAndInstall(false,true),900);});
+autoUpdater.on('error', error=>{updateRunning=false;sendUpdateStatus({state:'error',message:`به‌روزرسانی انجام نشد: ${error.message}`});});
 async function runJob(files: string[], options: ConvertOptions) {
   const jobId = crypto.randomUUID(); cancelled.delete(jobId); const accepted = files.filter(validInput);
   const progress = createProgress(); void progress;
@@ -95,6 +105,20 @@ if (!lock) app.quit(); else {
     ipcMain.handle('output:open', (_e, folder: string) => shell.openPath(folder));
     ipcMain.handle('integration:status', async () => ({ available: menuAvailability(), enabled: menuAvailability() && await registryEnabled(), message: menuAvailability() ? menuMessage() : 'فعال‌سازی منوی کلاسیک پس از نصب نسخه‌ی ویندوزی در دسترس است.' }));
     ipcMain.handle('integration:set', async (_e, enabled:boolean) => { try{await setQuickMenu(Boolean(enabled));store.set('settings',{...getSettings(),shellEnabled:Boolean(enabled)});return {ok:true,enabled:Boolean(enabled),available:true,message:menuMessage()};}catch(error){return {ok:false,enabled:await registryEnabled(),available:menuAvailability(),message:error instanceof Error?error.message:'ثبت منوی راست‌کلیک انجام نشد.'};} });
+    ipcMain.handle('updates:check-install', async ():Promise<UpdateStatus> => {
+      if(!app.isPackaged)return {state:'unavailable',message:'بررسی به‌روزرسانی در نسخه‌ی نصب‌شده در دسترس است.'};
+      if(!updateRepository.owner||!updateRepository.repo)return {state:'unavailable',message:'نشانی مخزن GitHub هنوز برای برنامه تنظیم نشده است.'};
+      if(updateRunning)return {state:'downloading',message:'دریافت به‌روزرسانی در حال انجام است.'};
+      updateRunning=true;sendUpdateStatus({state:'checking',message:'در حال بررسی آخرین Release در GitHub…'});
+      try{
+        autoUpdater.setFeedURL({provider:'github',owner:updateRepository.owner,repo:updateRepository.repo,releaseType:'release'});
+        const result=await autoUpdater.checkForUpdates();
+        if(!result||!result.isUpdateAvailable){updateRunning=false;const current={state:'current' as const,message:`برنامه به‌روز است (نسخه ${app.getVersion()}).`};sendUpdateStatus(current);return current;}
+        const downloading={state:'downloading' as const,percent:0,message:`نسخه ${result.updateInfo.version} پیدا شد؛ در حال دریافت…`};sendUpdateStatus(downloading);
+        await autoUpdater.downloadUpdate();
+        return {state:'installing',message:`نسخه ${result.updateInfo.version} دریافت شد و آماده‌ی نصب است.`};
+      }catch(error){updateRunning=false;const failed={state:'error' as const,message:error instanceof Error?error.message:'اتصال به GitHub یا دریافت به‌روزرسانی ناموفق بود.'};sendUpdateStatus(failed);return failed;}
+    });
     const initialFiles = process.argv.filter(validInput);
     if (initialFiles.length) void runJob(initialFiles, getSettings().quick); else createMain();
   });

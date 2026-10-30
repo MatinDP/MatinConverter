@@ -13,3 +13,4 @@ export interface AppSettings {
 export interface ConvertResult { input: string; output?: string; size?: number; width?: number; height?: number; error?: string; }
 export interface ConvertProgress { jobId: string; current: number; total: number; file: string; status: 'started'|'file-done'|'done'|'error'|'cancelled'; result?: ConvertResult; }
 export interface ConvertRequest { files: string[]; options: ConvertOptions; }
+export interface UpdateStatus { state: 'checking'|'downloading'|'installing'|'current'|'error'|'unavailable'; message: string; percent?: number; }
