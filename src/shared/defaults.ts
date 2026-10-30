@@ -1,0 +1,3 @@
+import type { AppSettings, ConvertOptions } from './types';
+export const defaultConvert: ConvertOptions = { format: 'webp', quality: 82, resizeMode: 'fit', width: 1920, height: 1920, withoutEnlargement: true, background: '#ffffff', preserveMetadata: false, suffix: '_converted', minQuality: 35, reduceForTarget: false };
+export const defaultSettings: AppSettings = { theme: 'system', zoom: 100, defaultFormat: 'webp', defaultQuality: 82, defaultOutputDir: '', autoOpenOutput: false, showNotification: true, quick: { ...defaultConvert, format: 'jpeg', quality: 80, targetKB: 500 }, shellEnabled: false };

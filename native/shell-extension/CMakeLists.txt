@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.24)
+project(MatinShellExtension LANGUAGES CXX)
+add_library(MatinShellExtension SHARED ExplorerCommand.cpp resources/Matin.rc)
+target_compile_features(MatinShellExtension PRIVATE cxx_std_20)
+target_compile_definitions(MatinShellExtension PRIVATE UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX)
+target_link_libraries(MatinShellExtension PRIVATE Ole32 Shell32)
+set_target_properties(MatinShellExtension PROPERTIES OUTPUT_NAME "MatinShellExtension")
