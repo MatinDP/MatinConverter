@@ -1,10 +1,13 @@
 {
   "name": "matin-converter",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Offline Windows image converter",
   "main": "dist/main/main/main.js",
   "author": "Matin Converter",
-  "repository": { "type": "git", "url": "https://github.com/MatinDP/MatinConverter.git" },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MatinDP/MatinConverter.git"
+  },
   "scripts": {
     "dev": "concurrently -k \"vite --host 127.0.0.1\" \"wait-on tcp:5173 && electron .\"",
     "build": "tsc -p tsconfig.main.json && vite build",
@@ -40,11 +43,41 @@
   "build": {
     "appId": "com.matin.converter",
     "productName": "Matin Converter",
-    "publish": [{ "provider": "github", "owner": "MatinDP", "repo": "MatinConverter" }],
-    "directories": { "output": "release" },
-    "files": ["dist/**/*", "package.json"],
-    "asarUnpack": ["node_modules/sharp/**/*", "node_modules/@img/**/*"],
-    "win": { "target": ["nsis"], "icon": "assets/icon.ico", "signAndEditExecutable": false },
-    "nsis": { "oneClick": false, "perMachine": false, "allowToChangeInstallationDirectory": true, "createDesktopShortcut": true, "createStartMenuShortcut": true, "installerIcon": "assets/icon.ico", "uninstallerIcon": "assets/icon.ico", "include": "packaging/nsis/hooks.nsh" }
+    "artifactName": "Matin-Converter-Setup-${version}.${ext}",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "MatinDP",
+        "repo": "MatinConverter"
+      }
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "node_modules/sharp/**/*",
+      "node_modules/@img/**/*"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "assets/icon.ico",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "include": "packaging/nsis/hooks.nsh"
+    }
   }
 }

@@ -1,7 +1,15 @@
-# GitHub updates
+# انتشار و به‌روزرسانی
 
-The Settings page now contains a **Check and install latest release** action. It uses `electron-updater`: when a newer stable version is found, it downloads the update, verifies the release metadata/checksum, and restarts into the installer.
+برنامه از `electron-updater` و ریلیزهای عمومی مخزن `MatinDP/MatinConverter` استفاده می‌کند. نشانی مخزن در `src/shared/update-config.ts` تنظیم شده است.
 
-Before it can contact GitHub, configure `owner` and `repo` in `src/shared/update-config.ts`. The GitHub repository must be public for this unauthenticated flow. Each published release must have a higher version than the installed app and include the electron-builder NSIS artifacts and `latest.yml` metadata. Do not publish an update from this checkout until the repository URL is confirmed.
+## ساخت ریلیز Windows
 
-No installer was generated as part of adding this feature. The current GitHub repository is still unknown, so the updater intentionally reports that configuration is missing until its owner and repository are supplied.
+1. نسخهٔ `package.json` و `package-lock.json` را افزایش دهید.
+2. بررسی نوع‌ها و تست‌ها را اجرا کنید.
+3. روی Windows x64، `npm run dist:win` را اجرا کنید.
+4. نصاب NSIS، فایل `.blockmap` و `latest.yml` تولیدشده در پوشهٔ `release` را با همان نسخه در GitHub Release بارگذاری کنید.
+5. Release را به‌صورت عمومی منتشر کنید؛ نسخه باید از نسخهٔ نصب‌شده بالاتر باشد.
+
+نام تگ را به‌شکل `vX.Y.Z` نگه دارید. `latest.yml` باید از همان اجرای ساختِ فایل نصاب باشد تا checksum با فایل‌ها هماهنگ بماند. نصاب NSIS هدف به‌روزرسانی خودکار Windows است.
+
+مخزن عمومی است و بررسی نسخه برای کاربر به توکن GitHub نیاز ندارد. گواهی Authenticode برای نصب یا آپدیتر الزامی نیست؛ Windows ممکن است برای نصاب امضانشده هشدار ناشر ناشناس نشان دهد. هیچ کلید یا توکنی را در مخزن ذخیره نکنید.
