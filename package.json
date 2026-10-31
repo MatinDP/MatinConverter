@@ -1,6 +1,6 @@
 {
   "name": "matin-converter",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Offline Windows image converter",
   "main": "dist/main/main/main.js",
   "author": "Matin Converter",
@@ -66,8 +66,7 @@
       "target": [
         "nsis"
       ],
-      "icon": "assets/icon.ico",
-      "signAndEditExecutable": false
+      "icon": "assets/icon.ico"
     },
     "nsis": {
       "oneClick": false,

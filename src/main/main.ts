@@ -32,6 +32,7 @@ const optionsSchema = z.object({
 const settingsSchema = z.object({ theme: z.enum(['light','dark','system']), zoom: z.number().int().min(75).max(150), defaultFormat: z.enum(['jpeg','png','webp','avif','tiff','gif']), defaultQuality: z.number().int().min(1).max(100), defaultOutputDir: z.string().max(32767), autoOpenOutput: z.boolean(), showNotification: z.boolean(), quick: optionsSchema, shellEnabled: z.boolean() }).strict();
 const validInput = (file: string) => typeof file === 'string' && path.isAbsolute(file) && /\.(jpe?g|jpe|jfif|png|webp|avif|tif|tiff|gif|svg|svgz)$/i.test(file);
 function getSettings():AppSettings{const saved=store.get('settings');return {...defaultSettings,...saved,quick:{...defaultSettings.quick,...saved.quick}};}
+function getQuickConvertOptions():ConvertOptions{const settings=getSettings();return {...settings.quick,outputDir:settings.quick.outputDir||settings.defaultOutputDir||undefined};}
 function quickMenuKey(extension:string){return `HKCU\\Software\\Classes\\SystemFileAssociations\\${extension}\\shell\\MatinConverter`;}
 async function registryEnabled(){try{await execFileAsync('reg.exe',['query',quickMenuKey('.jpg')],{windowsHide:true});return true;}catch{return false;}}
 function menuAvailability(){return process.platform==='win32'&&app.isPackaged;}
@@ -41,7 +42,7 @@ async function setQuickMenu(enabled:boolean){
   const executable=app.getPath('exe');
   if(enabled){
     const created:string[]=[];
-    try{for(const extension of quickMenuExtensions){const key=quickMenuKey(extension);await execFileAsync('reg.exe',['add',key,'/ve','/t','REG_SZ','/d','Convert with Matin Converter','/f'],{windowsHide:true});await execFileAsync('reg.exe',['add',key,'/v','MultiSelectModel','/t','REG_SZ','/d','Player','/f'],{windowsHide:true});await execFileAsync('reg.exe',['add',`${key}\\command`,'/ve','/t','REG_SZ','/d',`"${executable}" --quick %*`,'/f'],{windowsHide:true});created.push(key);}}
+    try{for(const extension of quickMenuExtensions){const key=quickMenuKey(extension);await execFileAsync('reg.exe',['add',key,'/ve','/t','REG_SZ','/d','Convert with Matin Converter','/f'],{windowsHide:true});await execFileAsync('reg.exe',['add',key,'/v','MultiSelectModel','/t','REG_SZ','/d','Player','/f'],{windowsHide:true});await execFileAsync('reg.exe',['add',`${key}\\DefaultIcon`,'/ve','/t','REG_SZ','/d',executable,'/f'],{windowsHide:true});await execFileAsync('reg.exe',['add',`${key}\\command`,'/ve','/t','REG_SZ','/d',`"${executable}" --quick %*`,'/f'],{windowsHide:true});created.push(key);}}
     catch(error){for(const key of [...created,...quickMenuExtensions.map(quickMenuKey)])await execFileAsync('reg.exe',['delete',key,'/f'],{windowsHide:true}).catch(()=>{});throw error;}
   }else{for(const extension of quickMenuExtensions)await execFileAsync('reg.exe',['delete',quickMenuKey(extension),'/f'],{windowsHide:true}).catch(()=>{});}
 }
@@ -92,7 +93,7 @@ function createMain() {
 }
 const lock = app.requestSingleInstanceLock();
 if (!lock) app.quit(); else {
-  app.on('second-instance', (_event, argv) => { const files = argv.filter(validInput); if (files.length) void runJob(files, getSettings().quick); else if (mainWindow) { if (mainWindow.isMinimized()) mainWindow.restore(); mainWindow.focus(); } });
+  app.on('second-instance', (_event, argv) => { const quickMode=argv.includes('--quick'); const files = argv.filter(validInput); if (files.length) void runJob(files, getQuickConvertOptions()); else if (!quickMode&&mainWindow) { if (mainWindow.isMinimized()) mainWindow.restore(); mainWindow.focus(); } });
   app.whenReady().then(() => {
     ipcMain.handle('settings:get', () => getSettings());
     ipcMain.handle('settings:set', (_e, settings: AppSettings) => { const checked = settingsSchema.parse(settings); store.set('settings', checked); if(mainWindow&&!mainWindow.isDestroyed())mainWindow.webContents.setZoomFactor(checked.zoom/100); return true; });
@@ -119,8 +120,9 @@ if (!lock) app.quit(); else {
         return {state:'installing',message:`نسخه ${result.updateInfo.version} دریافت شد و آماده‌ی نصب است.`};
       }catch(error){updateRunning=false;const failed={state:'error' as const,message:error instanceof Error?error.message:'اتصال به GitHub یا دریافت به‌روزرسانی ناموفق بود.'};sendUpdateStatus(failed);return failed;}
     });
+    const quickMode=process.argv.includes('--quick');
     const initialFiles = process.argv.filter(validInput);
-    if (initialFiles.length) void runJob(initialFiles, getSettings().quick); else createMain();
+    if (initialFiles.length) void runJob(initialFiles, getQuickConvertOptions()); else if (quickMode) app.quit(); else createMain();
   });
   app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
 }
