@@ -1,5 +1,8 @@
-node_modules/
-dist/
-release/
-native/**/build/
-*.log
+**/bin/
+**/obj/
+.vs/
+artifacts/
+TestResults/
+.wix/
+*.user
+*.suo

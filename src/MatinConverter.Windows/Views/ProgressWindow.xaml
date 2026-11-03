@@ -1,0 +1,11 @@
+<Window x:Class="MatinConverter.Windows.Views.ProgressWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Style="{StaticResource {x:Type Window}}" Title="Matin Converter" Width="520" SizeToContent="Height" MinWidth="460" MaxHeight="700" ResizeMode="CanMinimize" WindowStartupLocation="CenterOwner" Icon="/MatinConverter;component/Assets/icon.png" Closing="WindowClosing">
+ <Border Style="{StaticResource Card}" Margin="20" Padding="24"><StackPanel>
+  <DockPanel><Image Source="/MatinConverter;component/Assets/icon.png" Width="40" Height="40" Margin="0,0,12,0"/><StackPanel><TextBlock Text="{Binding Title}" FontSize="21" FontWeight="SemiBold"/><TextBlock Text="Matin Converter" Style="{StaticResource Muted}" FontSize="12" FlowDirection="LeftToRight"/></StackPanel></DockPanel>
+  <TextBlock Text="{Binding Current}" FlowDirection="LeftToRight" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" Margin="0,24,0,12" ToolTip="{Binding Current}"/>
+  <ProgressBar Value="{Binding Percentage,Mode=OneWay}" Maximum="100" IsIndeterminate="{Binding Indeterminate}" AutomationProperties.Name="Conversion progress"/>
+  <DockPanel Margin="0,12,0,12"><TextBlock Text="{Binding Count}" FlowDirection="LeftToRight"/><TextBlock Text="{Binding PercentLabel}" FlowDirection="LeftToRight" HorizontalAlignment="Right"/></DockPanel>
+  <TextBlock Text="{Binding Summary}" Style="{StaticResource Muted}"/>
+  <Expander Header="{DynamicResource Details}" Visibility="{Binding ErrorVisibility}"><StackPanel><TextBox Text="{Binding Errors,Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" MaxHeight="180" FlowDirection="LeftToRight" Margin="0,8"/><Button Content="{DynamicResource CopyErrors}" Command="{Binding CopyErrors}" HorizontalAlignment="Left"/></StackPanel></Expander>
+  <WrapPanel Margin="0,24,0,0"><Button Content="{Binding ActionLabel}" Command="{Binding CancelOrClose}" Style="{StaticResource Primary}"/><Button Content="{DynamicResource OpenOutput}" Command="{Binding OpenOutput}"/></WrapPanel>
+ </StackPanel></Border>
+</Window>

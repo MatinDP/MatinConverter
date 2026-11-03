@@ -1,13 +1,12 @@
 # Architecture
 
-- `src/renderer`: رابط React؛ دسترسی سیستم‌عامل فقط از API محدود preload.
-- `src/preload`: پل typed به چند عملیات allow-listed در IPC.
-- `src/main`: پنجره‌ها، تنظیمات، انتخاب مسیر، اعلان و مدیریت Jobهای سریالی.
-- `src/processing/engine.ts`: تبدیل Sharp، resize، کیفیت هدف محدود به 7 تلاش، خروجی موقت و rename اتمی.
-- `src/shared`: مدل‌ها و مقادیر پیش‌فرض.
+- `MatinConverter.Core` is independent of WPF: image format discovery, guarded Magick.NET runtime, inspect/thumbnail operations, batch conversion, source-safe atomic output, settings and structured logs.
+- `MatinConverter.Windows` uses MVVM with constructor/service injection. `MainViewModel` keeps job overrides separate from settings defaults. `OptionsEditor` is shared by job, global and quick profiles. Theme resources and a runtime Persian/English dictionary provide RTL/LTR and semantic brushes.
+- `native/ShellBridge.c` implements only `IExplorerCommand` / `IClassFactory`. Explorer supplies an entire `IShellItemArray`; the bridge extracts filesystem paths, writes a bounded, length-prefixed UTF-16 job under the current user's Jobs directory and starts the adjacent worker executable. No image codec or CLR is loaded into Explorer.
+- `Program --job-file` validates and consumes that manifest before creating the main window. It starts or contacts the per-user quick worker. `--quick` is a diagnostic/automation entry accepting safely separated file arguments. A named mutex coordinates ownership; a user-only, acknowledged named pipe forwards subsequent selections into a bounded channel. One consumer shows one progress window at a time and exits after 20 idle seconds. Settings are loaded at the start of each queued job.
+- Registry integration uses only the current user's class hive, the app's own CLSID and extension verb keys. Disabling removes them. The Inno Setup installer declares the same values, verifies registration through the installed executable, and removes owned keys during uninstall even if integration was enabled after installation. The main UI reports actual registry/path state instead of trusting the saved enable flag.
+- Image processing disables external delegates, indirect `@file` reads, network/document/script coders and filters through the shipped policy. Runtime pixel/frame/disk/memory limits constrain input. A caller-owned cancellation token stops scheduling, interrupts native image progress where supported and removes unfinished outputs. Independent per-file failures do not abort a batch.
 
-تنظیمات با electron-store در پوشه userData ذخیره می‌شود. Quick Convert در `settings.quick` مستقل از تنظیمات تبدیل جاری است. فایل‌های خروجی suffix می‌گیرند و هیچ‌گاه روی ورودی نوشته نمی‌شوند.
+Why a native bridge: Microsoft documents `IExplorerCommand` as receiving `IShellItemArray` and requiring in-process activation. This DLL performs only transport. It avoids command-line selection limits, `%1` assumptions and expensive code in Explorer. See [Choosing a Static or Dynamic Shortcut Menu Method](https://learn.microsoft.com/windows/win32/shell/shortcut-choose-method) and [IExplorerCommand](https://learn.microsoft.com/windows/win32/api/shobjidl_core/nn-shobjidl_core-iexplorercommand).
 
-پوشه `native/shell-extension` شامل سورس COM مبتنی بر `IExplorerCommand` و قالب manifest برای Sparse MSIX است. در خط ساخت فعلی DLL ساخته، کپی یا ثبت نمی‌شود و Installer نیز Package Identity hook ندارد؛ تا تکمیل و اعتبارسنجی این مسیر، IPC status عمداً unavailable است. مسیر `Invoke` برنامه Electron هم‌جوار DLL را اجرا و مسیرهای Unicode را با quoting امن به آن می‌دهد.
-
-برای سازگاری بدون گواهی، تنظیمات برنامه می‌تواند منوی کلاسیک کاربر فعلی را از طریق `reg.exe` با آرگومان‌های جداگانه و بدون shell فعال/غیرفعال کند. این گزینه به برنامه‌ی بسته‌بندی‌شده نیاز دارد؛ در ویندوز ۱۱ فقط در «نمایش گزینه‌های بیشتر» ظاهر می‌شود. NSIS hook کلیدهای اختصاصی برنامه را هنگام حذف پاک می‌کند.
+The old Electron application is retained only in Git history; it is not built, used or bundled by the new solution. Git origin remains the original repository.
