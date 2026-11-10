@@ -1,4 +1,4 @@
-# Matin Converter 1.0.0
+# Matin Converter 1.0.1
 
 تبدیل‌کنندهٔ آفلاین تصاویر برای Windows x64، بازنویسی‌شده با C#، .NET 10 و WPF. رابط فارسی و انگلیسی، پوستهٔ روشن/تیره/سیستم و دو بخش «تبدیل» و «تنظیمات» دارد.
 
@@ -32,7 +32,7 @@ Zig را از [توزیع رسمی 0.15.2](https://ziglang.org/download/0.15.2/z
 .\scripts\build.ps1 -Installer      # also creates an EXE installer; run only when an installer is wanted
 ```
 
-خروجی مستقل پس از ساخت: `artifacts/app-1.0.0/MatinConverter.exe` (کل پوشه باید کنار آن باشد). نصاب، فقط پس از درخواست ساخت: `artifacts/Matin-Converter-Setup-1.0.0.exe`.
+خروجی مستقل پس از ساخت: `artifacts/app-1.0.1/MatinConverter.exe` (کل پوشه باید کنار آن باشد). نصاب، فقط پس از درخواست ساخت: `artifacts/Matin-Converter-Setup-1.0.1.exe`.
 
 برای توسعه، ابتدا `scripts/build-native.ps1` و سپس `dotnet run --project src/MatinConverter.Windows` را اجرا کنید. `dotnet test tests/MatinConverter.Tests` آزمون‌های موتور و تنظیمات را اجرا می‌کند.
 
@@ -58,4 +58,4 @@ Zig را از [توزیع رسمی 0.15.2](https://ziglang.org/download/0.15.2/z
 
 منو در Windows 10 کلاسیک و در Windows 11 زیر Show more options قرار دارد. این پروژه رفتار منوی مدرن Windows 11 را دست‌کاری نمی‌کند. وضعیت آزمون‌های فیزیکی و نصب روی ماشین پاک در [TESTING.md](TESTING.md) مستند شده است؛ موفقیت آزمون‌های خودکار به معنی تأیید یک ماشین Windows 10 آزمایش‌نشده نیست.
 
-مخزن: [MatinDP/MatinConverter](https://github.com/MatinDP/MatinConverter). نسخهٔ انتشار فعلی از طریق tag `v1.0.0` مشخص می‌شود.
+مخزن: [MatinDP/MatinConverter](https://github.com/MatinDP/MatinConverter). نسخهٔ انتشار فعلی از طریق tag `v1.0.0` مشخص می‌شود؛ نسخهٔ نصاب درخواستی 1.0.1 است.
