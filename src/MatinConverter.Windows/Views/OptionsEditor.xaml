@@ -1,8 +1,22 @@
-<UserControl x:Class="MatinConverter.Windows.Views.OptionsEditor" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:c="clr-namespace:MatinConverter.Core;assembly=MatinConverter.Core">
+<UserControl x:Class="MatinConverter.Windows.Views.OptionsEditor" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:c="clr-namespace:MatinConverter.Core;assembly=MatinConverter.Core" xmlns:local="clr-namespace:MatinConverter.Windows.Views">
  <StackPanel>
   <TextBlock Text="{DynamicResource Format}" Style="{StaticResource Label}"/>
   <ComboBox x:Name="FormatBox" DisplayMemberPath="Label" SelectedValuePath="Id" SelectedValue="{Binding Format,UpdateSourceTrigger=PropertyChanged}" SelectionChanged="FormatChanged" FlowDirection="LeftToRight" AutomationProperties.Name="Output format"/>
-  <StackPanel x:Name="QualityPanel"><Grid Margin="0,12,0,4"><TextBlock Text="{DynamicResource Quality}" Foreground="{DynamicResource MutedBrush}"/><TextBlock Text="{Binding Quality}" HorizontalAlignment="Right" FlowDirection="LeftToRight"/></Grid><Slider Minimum="1" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding Quality,UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="Output quality"/></StackPanel>
+  <StackPanel x:Name="QualityPanel" Margin="0,12,0,0">
+   <TextBlock Text="{DynamicResource Quality}" Foreground="{DynamicResource MutedBrush}"/>
+   <Grid Margin="0,6,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="12"/><ColumnDefinition Width="56"/></Grid.ColumnDefinitions>
+    <Slider x:Name="QualitySlider" Minimum="1" Maximum="100" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding Quality,UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" FlowDirection="LeftToRight" AutomationProperties.Name="Output quality"/>
+    <TextBox x:Name="QualityNumber" Grid.Column="2" FlowDirection="LeftToRight" HorizontalContentAlignment="Center" AutomationProperties.Name="Output quality number" ToolTip="{DynamicResource QualityRange}"><TextBox.Text><Binding Path="Value" ElementName="QualitySlider" UpdateSourceTrigger="PropertyChanged" StringFormat="{}{0:0}" ValidatesOnExceptions="True"><Binding.ValidationRules><local:QualityRangeRule/></Binding.ValidationRules></Binding></TextBox.Text></TextBox>
+   </Grid>
+   <TextBlock x:Name="QualityHint" Text="{DynamicResource QualityHint}" Style="{StaticResource Muted}" FontSize="12" Margin="0,4,0,0"/>
+  </StackPanel>
+  <Border Background="{DynamicResource SoftBrush}" CornerRadius="8" Padding="12" Margin="0,12,0,0">
+   <StackPanel><TextBlock Text="{DynamicResource EstimatedSize}" FontWeight="SemiBold"/>
+    <TextBlock x:Name="EstimateStatus" Text="{DynamicResource EstimateEmpty}" FontSize="16" Margin="0,6,0,0" AutomationProperties.LiveSetting="Polite" AutomationProperties.Name="Estimated output size"/>
+    <TextBlock x:Name="EstimateSample" FontSize="11" Foreground="{DynamicResource MutedBrush}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" FlowDirection="LeftToRight" Margin="0,4,0,0"/>
+    <TextBlock Text="{DynamicResource EstimateHint}" Style="{StaticResource Muted}" FontSize="12" Margin="0,4,0,0"/>
+   </StackPanel>
+  </Border>
   <TextBlock Text="{DynamicResource Destination}" Style="{StaticResource Label}"/>
   <ComboBox x:Name="DestinationBox" SelectedValuePath="Tag" SelectedValue="{Binding Destination}" SelectionChanged="DestinationChanged" AutomationProperties.Name="Output destination">
    <ComboBoxItem Tag="{x:Static c:DestinationMode.Source}" Content="{DynamicResource SameFolder}"/><ComboBoxItem Tag="{x:Static c:DestinationMode.Custom}" Content="{DynamicResource CustomFolder}"/><ComboBoxItem Tag="{x:Static c:DestinationMode.Subfolder}" Content="{DynamicResource Subfolder}"/>
@@ -19,7 +33,7 @@
    <CheckBox Content="{DynamicResource Aspect}" IsChecked="{Binding PreserveAspect}"/><CheckBox Content="{DynamicResource Enlarge}" IsChecked="{Binding AllowEnlargement}"/>
    <TextBlock Text="{DynamicResource Background}" Style="{StaticResource Label}"/><TextBox Text="{Binding Background,UpdateSourceTrigger=PropertyChanged}" FlowDirection="LeftToRight" AutomationProperties.Name="JPEG background hex color"/>
    <CheckBox Content="{DynamicResource Strip}" IsChecked="{Binding StripMetadata}"/><TextBlock Text="{DynamicResource MetadataHint}" Style="{StaticResource Muted}" FontSize="12"/>
-   <TextBlock Text="{DynamicResource Frames}" Style="{StaticResource Label}"/><ComboBox SelectedValuePath="Tag" SelectedValue="{Binding Frames}" AutomationProperties.Name="Multiple frame policy"><ComboBoxItem Tag="{x:Static c:FrameMode.Preserve}" Content="{DynamicResource PreserveFrames}"/><ComboBoxItem Tag="{x:Static c:FrameMode.FirstFrame}" Content="{DynamicResource FirstFrame}"/></ComboBox>
+   <TextBlock Text="{DynamicResource Frames}" Style="{StaticResource Label}"/><ComboBox SelectedValuePath="Tag" SelectedValue="{Binding Frames}" AutomationProperties.Name="Multiple frame policy"><ComboBoxItem Tag="{x:Static c:FrameMode.Split}" Content="{DynamicResource SplitFrames}"/><ComboBoxItem Tag="{x:Static c:FrameMode.Preserve}" Content="{DynamicResource PreserveFrames}"/><ComboBoxItem Tag="{x:Static c:FrameMode.FirstFrame}" Content="{DynamicResource FirstFrame}"/></ComboBox><TextBlock Text="{DynamicResource FramesHint}" Style="{StaticResource Muted}" FontSize="12"/>
    <TextBlock Text="{DynamicResource Suffix}" Style="{StaticResource Label}"/><TextBox Text="{Binding Suffix,UpdateSourceTrigger=PropertyChanged}" FlowDirection="LeftToRight" AutomationProperties.Name="Filename suffix"/>
    <TextBlock Text="{DynamicResource Collision}" Style="{StaticResource Label}"/><ComboBox SelectedValuePath="Tag" SelectedValue="{Binding Collision}" AutomationProperties.Name="Filename collision policy"><ComboBoxItem Tag="{x:Static c:CollisionMode.Rename}" Content="{DynamicResource Rename}"/><ComboBoxItem Tag="{x:Static c:CollisionMode.Skip}" Content="{DynamicResource Skip}"/><ComboBoxItem Tag="{x:Static c:CollisionMode.Overwrite}" Content="{DynamicResource Overwrite}"/></ComboBox><TextBlock Text="{DynamicResource OverwriteHint}" FontSize="12" Style="{StaticResource Muted}"/>
   </StackPanel></Expander>

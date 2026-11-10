@@ -48,6 +48,7 @@ public sealed class MainViewModel : Observable
         get => jobOptions; private set => Set(ref jobOptions, value);
     }
     public ObservableCollection<FileItem> Files { get; } = [];
+    public string? PreviewSource => Files.FirstOrDefault()?.Path;
     public string CountLabel => $"{Files.Count} {L.T("Count")}";
     private string message = ""; public string Message
     {
@@ -119,6 +120,7 @@ public sealed class MainViewModel : Observable
     public ICommand TestQuick { get; }
     public MainViewModel()
     {
+        Files.CollectionChanged += (_, _) => Changed(nameof(PreviewSource));
         settings = store.Load();
         jobOptions = settings.Defaults with
         {
@@ -197,7 +199,7 @@ public sealed class MainViewModel : Observable
                     bitmap.EndInit();
                     bitmap.Freeze();
                     item.Thumbnail = bitmap;
-                    item.Dimensions = $"{data.details.Width} × {data.details.Height}" + (data.details.Frames > 1 ? $" · {data.details.Frames} frames" : "");
+                    item.Dimensions = $"{data.details.Width} × {data.details.Height}" + (data.details.Format == "PDF" ? $" · {data.details.Frames} {L.T("Pages")}" : data.details.Frames > 1 ? $" · {data.details.Frames} frames" : "");
                     item.Status = L.T("Ready");
                 }
                 catch (Exception ex) { item.Status = L.T("Unsupported"); AppLog.Write("inspect", ex.Message); }
@@ -220,6 +222,12 @@ public sealed class MainViewModel : Observable
             var result = await App.RunJobAsync(Files.Select(x => x.Path).ToArray(), JobOptions with
             {
             }, Settings, false, p => { if (p.Result is not null) { var item = Files.FirstOrDefault(x => x.Path.Equals(p.Result.Source, StringComparison.OrdinalIgnoreCase)); if (item is not null) item.Status = L.T(p.Result.Success ? "Success" : p.Result.Skipped ? "Skipped" : p.Result.Canceled ? "Canceled" : "Failed"); } });
+            foreach (var group in result.Files.GroupBy(x => x.Source, StringComparer.OrdinalIgnoreCase))
+            {
+                var item = Files.FirstOrDefault(x => x.Path.Equals(group.Key, StringComparison.OrdinalIgnoreCase));
+                if (item is not null)
+                    item.Status = L.T(group.Any(x => x.Error is not null) ? "Failed" : group.Any(x => x.Canceled) ? "Canceled" : group.Any(x => x.Success) ? "Success" : "Skipped");
+            }
             if (Settings.OpenOutput && result.OutputDirectories.Count > 0)
                 ShellActions.OpenDirectory(result.OutputDirectories[0]);
         }

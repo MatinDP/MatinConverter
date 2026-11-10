@@ -8,7 +8,7 @@
   #define AppVersion "1.0.0"
 #endif
 #define ShellId "{{8B71E20D-9E6A-4936-9065-2D7E63937BF0}"
-#define Extensions ".jpg|.jpeg|.jfif|.png|.webp|.avif|.heic|.heif|.gif|.bmp|.tif|.tiff|.ico|.svg|.svgz|.psd|.tga|.jp2|.dng|.cr2|.cr3|.nef|.arw|.orf|.raf|.rw2"
+#include "image-extensions.iss"
 
 [Setup]
 AppId={{A203FA13-CF07-4B8C-A74B-029392FA11EA}

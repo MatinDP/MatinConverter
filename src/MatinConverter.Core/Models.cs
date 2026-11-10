@@ -10,7 +10,7 @@ public enum CollisionMode
 }
 public enum FrameMode
 {
-    Preserve, FirstFrame
+    Preserve, FirstFrame, Split
 }
 public enum AppTheme
 {
@@ -53,7 +53,7 @@ public sealed record ConversionOptions
     {
         get; set;
     }
-    public FrameMode Frames { get; set; } = FrameMode.Preserve;
+    public FrameMode Frames { get; set; } = FrameMode.Split;
     public string Suffix { get; set; } = "";
     public CollisionMode Collision { get; set; } = CollisionMode.Rename;
 
@@ -123,6 +123,7 @@ public sealed record OutputFormat(string Id, string Extension, bool Quality, boo
 }
 public sealed record ConversionResult(string Source, string? Output, string? Error, bool Skipped = false, bool Canceled = false)
 {
+    public IReadOnlyList<string> Outputs { get; init; } = Output is null ? [] : [Output];
     public bool Success => Error is null && !Skipped && !Canceled && Output is not null;
 }
 public sealed record ConversionProgress(int Completed, int Total, int Succeeded, int Failed, int Skipped, string Current, ConversionResult? Result);

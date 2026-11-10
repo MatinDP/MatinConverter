@@ -8,7 +8,7 @@ public static class ExplorerIntegrationService
 {
     public const string ClassId = "{8B71E20D-9E6A-4936-9065-2D7E63937BF0}";
     private const string Classes = @"Software\Classes\";
-    private static readonly string[] Extensions = [".jpg", ".jpeg", ".jfif", ".png", ".webp", ".avif", ".heic", ".heif", ".gif", ".bmp", ".tif", ".tiff", ".ico", ".svg", ".svgz", ".psd", ".tga", ".jp2", ".dng", ".cr2", ".cr3", ".nef", ".arw", ".orf", ".raf", ".rw2"];
+    private static IReadOnlyList<string> Extensions => App.Formats.InputExtensions;
     public static string BridgePath => Path.Combine(AppContext.BaseDirectory, "MatinConverter.Shell.dll");
     public static IReadOnlyList<string> RegistrationPaths => Extensions.Select(ext => Classes + VerbKey(ext)).Append(Classes + @"CLSID\" + ClassId).ToArray();
 

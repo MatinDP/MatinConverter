@@ -39,6 +39,12 @@ internal static class Program
             try
             {
                 L.Apply("fa");
+                using var progressCancellation = new CancellationTokenSource();
+                var pdfProgress = new ProgressViewModel(1, progressCancellation, () => { });
+                pdfProgress.Report(new(1, 3, 1, 0, 0, "document.pdf · page 1", null));
+                Check(Math.Abs(pdfProgress.Percentage - 100d / 3) < 0.01 && pdfProgress.Count == "1 / 3", "PDF progress must count pages rather than source files.");
+                pdfProgress.Finish(new BatchResult(Enumerable.Range(0, 3).Select(i => new ConversionResult("document.pdf", $"page-{i}.png", null)).ToArray(), false));
+                Check(pdfProgress.Percentage == 100 && pdfProgress.Count == "3 / 3", "PDF progress must finish at 100 percent.");
                 ThemeService.Apply(AppTheme.Light);
                 var window = new MainWindow();
                 application.MainWindow = window;
@@ -57,6 +63,46 @@ internal static class Program
                 model.Clear.Execute(null);
                 Check(model.Files.Count == 0, "Clear failed.");
                 await model.AddAsync([fixtures[0]]);
+                var editor = Descendants(window).OfType<OptionsEditor>().First();
+                await Idle();
+                var quality = (Slider)editor.FindName("QualitySlider");
+                var qualityNumber = (TextBox)editor.FindName("QualityNumber");
+                var sizeLabel = (TextBlock)editor.FindName("EstimateStatus");
+                ((ComboBox)editor.FindName("FormatBox")).SelectedValue = "Png";
+                await Idle();
+                Check(!quality.IsEnabled, "PNG quality must be described as lossless.");
+                ((ComboBox)editor.FindName("FormatBox")).SelectedValue = "Jpeg";
+                quality.Value = 45;
+                await Idle();
+                Check(quality.IsEnabled && model.JobOptions.Quality == 45 && qualityNumber.Text == "45", "Quality slider, numeric display and conversion settings must agree.");
+                qualityNumber.Text = "0";
+                await Idle();
+                Check(Validation.GetHasError(qualityNumber), "Out-of-range quality must be marked as invalid.");
+                qualityNumber.Text = "75";
+                await Idle();
+                Check(!Validation.GetHasError(qualityNumber) && quality.Value == 75 && model.JobOptions.Quality == 75, "Typed quality must update the slider and output settings.");
+                await editor.UpdateEstimateAsync();
+                Check(sizeLabel.Text.StartsWith("≈ "), "An encoded size estimate was not displayed.");
+                var otherFile = fixtures[1];
+                await model.AddAsync([otherFile]);
+                model.Remove.Execute(model.Files[0]);
+                await editor.UpdateEstimateAsync();
+                Check(((TextBlock)editor.FindName("EstimateSample")).Text == Path.GetFileName(otherFile), "Estimate sample label did not follow the selected sample.");
+                model.Clear.Execute(null);
+                await Idle();
+                Check(sizeLabel.Text == L.T("EstimateEmpty"), "Clearing the queue must clear the estimate.");
+                await model.AddAsync([fixtures[0]]);
+                await editor.UpdateEstimateAsync();
+                if (Environment.GetEnvironmentVariable("MATIN_UI_CAPTURE") is { Length: > 0 } capture)
+                {
+                    window.UpdateLayout();
+                    var bitmap = new System.Windows.Media.Imaging.RenderTargetBitmap((int)window.ActualWidth, (int)window.ActualHeight, 96, 96, PixelFormats.Pbgra32);
+                    bitmap.Render(window);
+                    var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
+                    encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(bitmap));
+                    using var imageStream = File.Create(capture);
+                    encoder.Save(imageStream);
+                }
                 foreach (var language in new[] { "fa", "en" })
                     foreach (var theme in new[] { AppTheme.Light, AppTheme.Dark })
                     {

@@ -41,7 +41,9 @@ function Uninstall-App([string]$log) {
 }
 function Assert-NoShell {
     $keys = @('Software\Classes\CLSID\{8B71E20D-9E6A-4936-9065-2D7E63937BF0}')
-    foreach ($ext in @('.jpg', '.jpeg', '.jfif', '.png', '.webp', '.avif', '.heic', '.heif', '.gif', '.bmp', '.tif', '.tiff', '.ico', '.svg', '.svgz', '.psd', '.tga', '.jp2', '.dng', '.cr2', '.cr3', '.nef', '.arw', '.orf', '.raf', '.rw2')) {
+    $extensionManifest = Get-Content (Join-Path $projectRoot 'packaging/image-extensions.iss') -Raw
+    if ($extensionManifest -notmatch '#define Extensions "([^"]+)"') { throw 'Invalid Shell extension manifest.' }
+    foreach ($ext in $Matches[1].Split('|')) {
         $keys += "Software\Classes\SystemFileAssociations\$ext\shell\MatinConverter"
     }
     foreach ($path in $keys) {

@@ -48,12 +48,14 @@ public sealed class ProgressViewModel(int total, CancellationTokenSource cancell
     }
     public void Report(ConversionProgress p)
     {
+        total = p.Total;
         Completed = Math.Max(Completed, p.Completed);
         Current = Path.GetFileName(p.Current);
         Summary = $"{p.Succeeded} {L.T("Success")} · {p.Failed} {L.T("Failed")} · {p.Skipped} {L.T("Skipped")}";
     }
     public void Finish(BatchResult result)
     {
+        total = result.Files.Count;
         Finished = true;
         Title = L.T(result.Canceled ? "Canceled" : "Done");
         Completed = result.Files.Count(f => !f.Canceled);

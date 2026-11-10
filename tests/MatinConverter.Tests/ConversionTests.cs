@@ -331,10 +331,12 @@ public sealed class ConversionTests : IDisposable
             frames.Add(new MagickImage(MagickColors.Blue, 20, 20) { AnimationDelay = 10 });
             frames.Write(input);
         }
-        Assert.NotNull(Run(input, new()
+        var split = Run(input, new()
         {
             Format = "Jpeg"
-        }).Error);
+        });
+        Assert.True(split.Success, split.Error);
+        Assert.Equal(2, split.Outputs.Count);
         var first = Run(input, new()
         {
             Format = "Png",
@@ -344,7 +346,7 @@ public sealed class ConversionTests : IDisposable
         Assert.Equal(1, Engine.Inspect(first.Output!).Frames);
         var preserved = Run(input, new()
         {
-            Format = "Tiff"
+            Format = "Tiff", Frames = FrameMode.Preserve
         });
         Assert.True(preserved.Success, preserved.Error);
         Assert.Equal(2, Engine.Inspect(preserved.Output!).Frames);
